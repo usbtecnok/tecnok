@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Termos de Aceite — USB-TECNOK</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;line-height:1.5;margin:20px;background:#f7f8fb}
+  .card{max-width:900px;margin:0 auto;background:#fff;padding:24px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+  h1{margin-top:0}
+  .actions{display:flex;gap:12px;justify-content:flex-end;margin-top:16px}
+  button{padding:10px 16px;border-radius:6px;border:0;cursor:pointer}
+  .accept{background:#0b7be0;color:#fff}
+  .decline{background:#eee}
+  .terms{max-height:56vh;overflow:auto;padding:12px;border:1px solid #eee;border-radius:6px;background:#fafafa}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Termos de Uso — USB-TECNOK</h1>
+    <div class="terms" id="termsText">
+      <h3>1. Introdução</h3>
+      <p>Bem‑vindo ao USB‑TECNOK. Ao utilizar esta plataforma, você concorda com estes termos.</p>
+      <h3>2. Uso do serviço</h3>
+      <p>O serviço conecta passageiros a motoristas. Uber, cobrança, responsabilidades etc. (texto modelo — substitua pelo texto legal do seu projeto).</p>
+      <h3>3. Segurança e botão de pânico</h3>
+      <p>Ao acionar o botão de pânico, sua localização será enviada para nossa central e registrada.</p>
+      <h3>4. Créditos pré‑pago</h3>
+      <p>O uso de créditos pré‑pago está sujeito às regras de reembolso e validades.</p>
+      <h3>5. Privacidade</h3>
+      <p>Dados pessoais são tratados conforme a nossa política de privacidade.</p>
+      <p>...</p>
+    </div>
+
+    <div style="margin-top:12px">
+      <label><input type="checkbox" id="agree"> Eu li e aceito os termos</label>
+    </div>
+
+    <div class="actions">
+      <button class="decline" onclick="history.back()">Voltar</button>
+      <button class="accept" id="btnAccept">Aceitar</button>
+    </div>
+  </div>
+
+<script>
+const btn = document.getElementById('btnAccept');
+btn.addEventListener('click', () => {
+  const cb = document.getElementById('agree');
+  if(!cb.checked){ alert('Você precisa aceitar os termos para prosseguir.'); return; }
+  localStorage.setItem('usbtecnok_terms_accepted','1');
+  alert('Termos aceitos. Obrigado!');
+  // opcional: redirecionar
+  window.location.href = '/public/ride.html';
+});
+</script>
+</body>
+</html>

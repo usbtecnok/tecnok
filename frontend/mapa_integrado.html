@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tecnok - Mapa Integrado</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- Leaflet Routing Machine para rotas -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
+
+<script>
+  // Inicializa mapa no Rio de Janeiro (Oeste)
+  const map = L.map('map').setView([-22.9136, -43.2222], 11);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+    maxZoom: 19
+  }).addTo(map);
+
+  // Ícones personalizados
+  const iconMotorista = L.icon({iconUrl:'https://cdn-icons-png.flaticon.com/512/61/61231.png', iconSize:[30,30]});
+  const iconPassageiro = L.icon({iconUrl:'https://cdn-icons-png.flaticon.com/512/1077/1077042.png', iconSize:[25,25]});
+  const iconUsuario = L.icon({iconUrl:'https://cdn-icons-png.flaticon.com/512/64/64113.png', iconSize:[30,30]});
+
+  // Marcadores iniciais (simulados)
+  let motoristas = [
+    {id:1, nome:'Motorista 1', lat:-22.9121, lon:-43.2300},
+    {id:2, nome:'Motorista 2', lat:-22.9500, lon:-43.2100},
+    {id:3, nome:'Motorista 3', lat:-22.8900, lon:-43.2600}
+  ];
+  let passageiros = [
+    {id:1, nome:'Passageiro 1', lat:-22.9300, lon:-43.2000},
+    {id:2, nome:'Passageiro 2', lat:-22.9100, lon:-43.2500}
+  ];
+
+  // Adiciona motoristas
+  const markersMotoristas = motoristas.map(m =>
+    L.marker([m.lat,m.lon], {icon: iconMotorista}).bindPopup(m.nome).addTo(map)
+  );
+
+  // Adiciona passageiros
+  const markersPassageiros = passageiros.map(p =>
+    L.marker([p.lat,p.lon], {icon: iconPassageiro}).bindPopup(p.nome).addTo(map)
+  );
+
+  // Marcador do usuário
+  let minhaPos = L.marker([-22.9136,-43.2222], {icon: iconUsuario}).bindPopup('Você está aqui').addTo(map);
+
+  // Atualiza localização do usuário
+  if(navigator.geolocation){
+    navigator.geolocation.watchPosition(
+      pos=>{
+        const lat=pos.coords.latitude;
+        const lon=pos.coords.longitude;
+        minhaPos.setLatLng([lat,lon]);
+        map.setView([lat,lon],13);
+      },
+      err=>console.error('Erro geolocalização:', err),
+      {enableHighAccuracy:true}
+    );
+  } else { alert('Geolocalização não suportada'); }
+
+  // Função para atualizar motoristas e passageiros em tempo real (simulação)
+  setInterval(()=>{
+    motoristas.forEach((m,i)=>{
+      m.lat += (Math.random()-0.5)/1000;
+      m.lon += (Math.random()-0.5)/1000;
+      markersMotoristas[i].setLatLng([m.lat,m.lon]);
+    });
+    passageiros.forEach((p,i)=>{
+      p.lat += (Math.random()-0.5)/2000;
+      p.lon += (Math.random()-0.5)/2000;
+      markersPassageiros[i].setLatLng([p.lat,p.lon]);
+    });
+  },3000); // Atualiza a cada 3 segundos
+
+  // Exemplo de rota: Motorista 1 até Passageiro 1
+  L.Routing.control({
+    waypoints: [
+      L.latLng(motoristas[0].lat, motoristas[0].lon),
+      L.latLng(passageiros[0].lat, passageiros[0].lon)
+    ],
+    routeWhileDragging: false,
+    draggableWaypoints: false,
+    addWaypoints: false
+  }).addTo(map);
+
+</script>
+</body>
+</html>

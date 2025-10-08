@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cadastro — Passageiro</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;background:#f3f6fb;margin:0;padding:20px}
+.card{max-width:600px;margin:20px auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+h2{margin-top:0}
+input,button{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:1px solid #ddd}
+button{background:#0b7be0;color:#fff;border:0;cursor:pointer}
+.small{display:flex;gap:8px}
+.small input{flex:1}
+.note{font-size:13px;color:#666}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>Cadastro do Passageiro</h2>
+  <div class="note">Preencha seus dados. Após criar conta, você poderá pedir corridas.</div>
+  <input id="name" placeholder="Nome completo">
+  <input id="phone" placeholder="Telefone (xx) xxxxx-xxxx">
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Senha">
+  <button id="btnSignup">Criar Conta</button>
+</div>
+
+<script>
+document.getElementById('btnSignup').addEventListener('click', async () => {
+  const payload = {
+    name: document.getElementById('name').value.trim(),
+    phone: document.getElementById('phone').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    password: document.getElementById('password').value
+  };
+  if(!payload.name || !payload.phone || !payload.email || !payload.password){ alert('Preencha todos os campos'); return; }
+
+  // tentativa de chamada ao backend (implemente /api/signup-passenger)
+  try {
+    const res = await fetch('/api/signup-passenger', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(payload) });
+    if(res.ok){ alert('Conta criada com sucesso!'); window.location.href='/public/ride.html'; }
+    else { const txt = await res.text(); alert('Erro: '+txt); }
+  } catch (err) {
+    console.warn('Backend offline — salvando local temporariamente');
+    // fallback: salvar local (apenas para testes)
+    const clients = JSON.parse(localStorage.getItem('usb_clients')||'[]');
+    clients.push(payload);
+    localStorage.setItem('usb_clients', JSON.stringify(clients));
+    alert('Cadastro salvo localmente (modo teste).');
+    window.location.href='/public/ride.html';
+  }
+});
+</script>
+</body>
+</html>

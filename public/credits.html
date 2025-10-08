@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Comprar Créditos — USB-TECNOK</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;background:#f7f9fc;margin:0;padding:24px}
+.card{max-width:480px;margin:30px auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 8px 24px rgba(11,61,145,.06)}
+h2{margin:0 0 8px 0}
+.balance{font-size:20px;margin:12px 0}
+.btn{display:inline-block;padding:12px 18px;border-radius:8px;border:0;background:#0b7be0;color:#fff;cursor:pointer}
+.small{font-size:13px;color:#666;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>Comprar Créditos Pré‑pago</h2>
+  <div class="balance">Saldo atual: <span id="saldo">R$ 0,00</span></div>
+  <div>
+    <button id="buy1" class="btn">Comprar R$1,00</button>
+    <button id="buy5" class="btn" style="background:#27ae60;margin-left:8px">Comprar R$5,00</button>
+  </div>
+  <div class="small">Os créditos são armazenados localmente (modo teste). Em produção, integre com gateway de pagamento.</div>
+</div>
+
+<script>
+function formatBRL(v){ return 'R$ '+v.toFixed(2).replace('.',','); }
+function getSaldo(){ return Number(localStorage.getItem('usb_saldo')||'0'); }
+function setSaldo(v){ localStorage.setItem('usb_saldo', String(v)); document.getElementById('saldo').textContent=formatBRL(v); }
+
+document.getElementById('buy1').addEventListener('click', ()=> {
+  let s = getSaldo(); s += 1.00; setSaldo(s);
+  // opcional: enviar para backend /api/purchase-credit
+  fetch('/api/purchase-credit',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({amount:1})}).catch(()=>{});
+  alert('Compra de R$1,00 efetuada (modo teste).');
+});
+document.getElementById('buy5').addEventListener('click', ()=> {
+  let s = getSaldo(); s += 5.00; setSaldo(s);
+  fetch('/api/purchase-credit',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({amount:5})}).catch(()=>{});
+  alert('Compra de R$5,00 efetuada (modo teste).');
+});
+
+setSaldo(getSaldo());
+</script>
+</body>
+</html>

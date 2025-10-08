@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pedir Corrida — USB-TECNOK</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;background:#eef4fb;margin:0;padding:20px}
+.card{max-width:760px;margin:16px auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 8px 18px rgba(0,0,0,.06)}
+.header{display:flex;align-items:center;gap:12px}
+.logo{height:48px}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+input,select,button{padding:10px;border-radius:8px;border:1px solid #ddd}
+input{flex:1}
+.btn{background:#0b7be0;color:#fff;border:0;padding:12px 18px;border-radius:8px;cursor:pointer}
+.info{margin-top:12px;color:#666}
+.balance{font-weight:bold}
+.footer-note{font-size:13px;color:#888;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <img class="logo" src="/logotecnok.png" alt="logo">
+    <h2>Pedir Corrida</h2>
+  </div>
+
+  <div class="row" style="margin-top:18px">
+    <input id="from" placeholder="Local de partida (endereço ou referência)">
+    <input id="to" placeholder="Destino">
+  </div>
+
+  <div class="row">
+    <select id="vehicle">
+      <option value="car">Carro</option>
+      <option value="motorbike">Moto</option>
+      <option value="van">Van</option>
+    </select>
+    <input id="note" placeholder="Observações (opcional)">
+  </div>
+
+  <div style="margin-top:12px;display:flex;gap:12px;align-items:center">
+    <div class="info">Saldo: <span id="saldo">R$ 0,00</span></div>
+    <button class="btn" id="btnTopUp" onclick="location.href='/public/credits.html'">Comprar Créditos</button>
+    <button class="btn" id="btnTerms" onclick="location.href='/public/terms.html'">Termos</button>
+  </div>
+
+  <div style="margin-top:16px">
+    <button class="btn" id="btnRequest">Pedir Corrida</button>
+  </div>
+
+  <div class="footer-note">Observação: O valor da corrida é calculado automaticamente (modo teste)</div>
+</div>
+
+<script>
+function fmt(v){ return 'R$ '+v.toFixed(2).replace('.',','); }
+function getSaldo(){ return Number(localStorage.getItem('usb_saldo')||'0'); }
+function setSaldo(v){ localStorage.setItem('usb_saldo', String(v)); document.getElementById('saldo').textContent = fmt(v); }
+
+setSaldo(getSaldo());
+
+document.getElementById('btnRequest').addEventListener('click', async () => {
+  // verifique termos aceitos
+  if(localStorage.getItem('usbtecnok_terms_accepted')!=='1'){ alert('Você precisa aceitar os Termos antes de pedir corrida.'); location.href='/public/terms.html'; return; }
+
+  const from = document.getElementById('from').value.trim();
+  const to = document.getElementById('to').value.trim();
+  const vehicle = document.getElementById('vehicle').value;
+  const note = document.getElementById('note').value.trim();
+
+  if(!from || !to){ alert('Preencha origem e destino'); return; }
+
+  // cálculo de tarifa (simples demo)
+  const distanceEstimate = Math.max(1, Math.floor(Math.random()*12)+1); // km
+  const base = (vehicle==='motorbike')?3.0:5.0;
+  const price = Number((base + distanceEstimate * 1.5).toFixed(2));
+
+  // verifica saldo
+  const saldo = getSaldo();
+  if(saldo < price){
+    if(confirm('Saldo insuficiente. Deseja comprar créditos agora?')){ location.href='/public/credits.html'; }
+    return;
+  }
+
+  // criar pedido (POST para backend ou local fallback)
+  const payload = { from, to, vehicle, note, price, timestamp: new Date().toISOString() };
+  try {
+    const res = await fetch('/api/request-ride',{method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(payload)});
+    if(res.ok){ alert('Corrida solicitada!'); setSaldo(saldo - price); }
+    else { const t = await res.text(); alert('Erro servidor: '+t); }
+  } catch (err) {
+    console.warn('Servidor offline — salvando pedido localmente para testes');
+    const pedidos = JSON.parse(localStorage.getItem('usb_pedidos')||'[]');
+    pedidos.push(payload);
+    localStorage.setItem('usb_pedidos', JSON.stringify(pedidos));
+    setSaldo(saldo - price);
+    alert('Corrida criada localmente (modo teste). Saldo debitado.');
+  }
+});
+</script>
+</body>
+</html>

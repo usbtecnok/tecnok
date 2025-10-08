@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aprovação de Motoristas - Tecnok</title>
+<style>
+body { font-family: Arial, sans-serif; margin:20px; }
+h1 { color:#004aad; }
+table { width:100%; border-collapse: collapse; margin-top:20px; }
+th, td { border:1px solid #ccc; padding:10px; text-align:center; }
+th { background:#004aad; color:white; }
+button { padding:5px 10px; margin:2px; border:none; border-radius:5px; cursor:pointer; }
+button.aprovar { background:green; color:white; }
+button.reprovar { background:red; color:white; }
+</style>
+</head>
+<body>
+
+<h1>Painel de Aprovação de Motoristas</h1>
+
+<table>
+<thead>
+<tr>
+  <th>Nome</th>
+  <th>Email</th>
+  <th>Status</th>
+  <th>Ação</th>
+</tr>
+</thead>
+<tbody id="listaMotoristas"></tbody>
+</table>
+
+<script>
+async function carregarMotoristas(){
+  try{
+    const res = await fetch('http://localhost:5000/api/motoristas');
+    const motoristas = await res.json();
+    const tbody = document.getElementById('listaMotoristas');
+    tbody.innerHTML = '';
+    motoristas.forEach(m=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${m.nome}</td>
+        <td>${m.email}</td>
+        <td>${m.status}</td>
+        <td>
+          <button class="aprovar" onclick="aprovar(${m.id})">Aprovar</button>
+          <button class="reprovar" onclick="reprovar(${m.id})">Reprovar</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  } catch(e){ console.error('Erro ao carregar motoristas:', e); }
+}
+
+async function aprovar(id){
+  await fetch(`http://localhost:5000/api/motoristas/${id}/aprovar`, {method:'POST'});
+  carregarMotoristas();
+}
+
+async function reprovar(id){
+  await fetch(`http://localhost:5000/api/motoristas/${id}/reprovar`, {method:'POST'});
+  carregarMotoristas();
+}
+
+carregarMotoristas();
+setInterval(carregarMotoristas,5000);
+</script>
+
+</body>
+</html>

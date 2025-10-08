@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tecnok - Mapa Backend</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+<style>
+body { margin:0; font-family: Arial, sans-serif; }
+#map { width: 100%; height: 80vh; }
+header { height: 60px; background:#004aad; color:white; display:flex; align-items:center; padding:0 20px; }
+header img { height:40px; margin-right:15px; }
+.botoes { padding:10px 20px; display:flex; gap:10px; flex-wrap:wrap; }
+.botoes button { padding:10px 15px; border:none; border-radius:5px; cursor:pointer; background:#004aad; color:white; font-weight:bold; }
+.painel { padding:10px 20px; background:#f1f1f1; height:calc(20vh - 20px); overflow:auto; }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="logo_usbtecnok.png" alt="Logo USB-TECNOK">
+  <h1>Tecnok</h1>
+</header>
+
+<div class="botoes">
+  <button id="pedirCorrida">Pedir Corrida</button>
+  <button id="botaoPanico">Botão de Pânico</button>
+  <button id="torneMotorista">Torne-se Motorista Tecnok</button>
+  <button id="tornePassageiro">Torne-se Passageiro Tecnok</button>
+  <button id="compreSaldo">Compre Saldo</button>
+</div>
+
+<div id="map"></div>
+
+<div class="painel" id="painelMotorista">
+Painel do Motorista / Passageiro
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
+
+<script>
+const map = L.map('map').setView([-22.9136, -43.2222], 11);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+ attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+ maxZoom:19
+}).addTo(map);
+
+const iconMotorista = L.icon({iconUrl:'https://cdn-icons-png.flaticon.com/512/61/61231.png', iconSize:[30,30]});
+const iconPassageiro = L.icon({iconUrl:'https://cdn-icons-png.flaticon.com/512/1077/1077042.png', iconSize:[25,25]});
+const iconUsuario = L.icon({iconUrl:'https://cdn-icons-png.flaticon.com/512/64/64113.png', iconSize:[30,30]});
+
+let markersMotoristas = {};
+let markersPassageiros = {};
+let minhaPos = L.marker([-22.9136,-43.2222], {icon: iconUsuario}).bindPopup('Você está aqui').addTo(map);
+
+if(navigator.geolocation){
+ navigator.geolocation.watchPosition(pos=>{
+   const lat=pos.coords.latitude;
+   const lon=pos.coords.longitude;
+   minhaPos.setLatLng([lat,lon]);
+   map.setView([lat,lon],13);
+ }, err=>console.error('Erro geolocalização:',err), {enableHighAccuracy:true});
+}
+
+async function atualizarDados(){
+ try{
+   const res = await fetch('http://localhost:5000/api/dados'); // backend Node.js retorna motoristas e passageiros
+   const data = await res.json();
+   // Motoristas
+   data.motoristas.forEach(m=>{
+     if(markersMotoristas[m.id]){
+       markersMotoristas[m.id].setLatLng([m.lat,m.lon]);
+     } else {
+       markersMotoristas[m.id] = L.marker([m.lat,m.lon], {icon: iconMotorista}).bindPopup(m.nome).addTo(map);
+     }
+   });
+   // Passageiros
+   data.passageiros.forEach(p=>{
+     if(markersPassageiros[p.id]){
+       markersPassageiros[p.id].setLatLng([p.lat,p.lon]);
+     } else {
+       markersPassageiros[p.id] = L.marker([p.lat,p.lon], {icon: iconPassageiro}).bindPopup(p.nome).addTo(map);
+     }
+   });
+ } catch(e){ console.error('Erro ao atualizar dados:',e); }
+}
+
+// Atualiza dados a cada 3 segundos
+setInterval(atualizarDados,3000);
+
+// Botões
+document.getElementById('pedirCorrida').onclick = ()=>alert('Pedido de corrida enviado!');
+document.getElementById('botaoPanico').onclick = ()=>alert('Alerta de pânico ativado!');
+document.getElementById('torneMotorista').onclick = ()=>alert('Cadastro motorista Tecnok!');
+document.getElementById('tornePassageiro').onclick = ()=>alert('Cadastro passageiro Tecnok!');
+document.getElementById('compreSaldo').onclick = ()=>alert('Página de compra de saldo!');
+</script>
+
+</body>
+</html>

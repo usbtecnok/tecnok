@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS panic_alerts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    timestamp DATETIME NOT NULL,
+    latitude DOUBLE NOT NULL,
+    longitude DOUBLE NOT NULL
+);

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Botão de Pânico USBTECNOK</title>
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: linear-gradient(to bottom, #f0f2f5, #d9e2ec);
+    font-family: Arial, sans-serif;
+  }
+  #logo {
+    width: 150px;
+    height: auto;
+    margin-bottom: 30px;
+  }
+  #panic-btn {
+    background: #ff3b30;
+    color: white;
+    border: none;
+    padding: 20px 60px;
+    font-size: 1.6rem;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.1s, box-shadow 0.2s;
+    max-width: 90%;
+  }
+  #panic-btn img {
+    width: 30px;
+    height: 30px;
+  }
+  #panic-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  }
+  @media (max-width: 500px) {
+    #panic-btn {
+      font-size: 1.3rem;
+      padding: 15px 40px;
+    }
+    #logo {
+      width: 120px;
+      margin-bottom: 20px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<img id="logo" src="logotecnok.png" alt="Logo USBTECNOK">
+<button id="panic-btn">
+  <img src="logotecnok.png" alt="Logo Botão"> 🚨 PÂNICO
+</button>
+
+<script>
+  const ws = new WebSocket('ws://localhost:5001');
+
+  ws.onopen = () => console.log('✅ Conectado ao WebSocket de pânico!');
+  ws.onerror = err => console.error('❌ Erro no WebSocket:', err);
+
+  document.getElementById('panic-btn').addEventListener('click', () => {
+    if (!navigator.geolocation) {
+      alert('Geolocalização não suportada pelo navegador.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(position => {
+      const message = {
+        type: 'panic',
+        timestamp: new Date(),
+        location: {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        }
+      };
+      ws.send(JSON.stringify(message));
+      alert('🚨 Alerta de pânico enviado!');
+    }, () => {
+      alert('Não foi possível obter a localização.');
+    });
+  });
+</script>
+
+</body>
+</html>

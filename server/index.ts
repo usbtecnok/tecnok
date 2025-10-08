@@ -1,93 +1,52 @@
-import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
-import { seedRoutePrices } from "./seed-route-prices";
+import express from 'express';
+import cors from 'cors';
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-declare module 'http' {
-  interface IncomingMessage {
-    rawBody: unknown
-  }
-}
+app.use(cors());
+app.use(express.json());
 
-declare module 'express-session' {
-  interface SessionData {
-    driverId: string;
-    isDriver: boolean;
-    isAdmin: boolean;
-  }
-}
-app.use(express.json({
-  verify: (req, _res, buf) => {
-    req.rawBody = buf;
-  }
-}));
-app.use(express.urlencoded({ extended: false }));
+// Dados simulados de motoristas e passageiros
+let motoristas = [
+  {id:1,nome:'Motorista 1',lat:-22.9121,lon:-43.2300},
+  {id:2,nome:'Motorista 2',lat:-22.9500,lon:-43.2100},
+  {id:3,nome:'Motorista 3',lat:-22.8900,lon:-43.2600}
+];
 
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+let passageiros = [
+  {id:1,nome:'Passageiro 1',lat:-22.9300,lon:-43.2000},
+  {id:2,nome:'Passageiro 2',lat:-22.9100,lon:-43.2500}
+];
 
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
+// Atualiza posição simulada a cada 3 segundos
+setInterval(()=>{
+  motoristas.forEach(m=>{
+    m.lat += (Math.random()-0.5)/1000;
+    m.lon += (Math.random()-0.5)/1000;
   });
+  passageiros.forEach(p=>{
+    p.lat += (Math.random()-0.5)/2000;
+    p.lon += (Math.random()-0.5)/2000;
+  });
+},3000);
 
-  next();
+// Rota para obter dados
+app.get('/api/dados',(req,res)=>{
+  res.json({motoristas,passageiros});
 });
 
-(async () => {
-  const server = await registerRoutes(app);
-  
-  // Seed route prices on startup
-  await seedRoutePrices();
+// Rota para pedir corrida (simulado)
+app.post('/api/pedir-corrida',(req,res)=>{
+  const {usuarioId, destinoLat, destinoLon} = req.body;
+  console.log('Pedido de corrida:', usuarioId, destinoLat, destinoLon);
+  res.json({status:'ok', message:'Corrida registrada!'});
+});
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+app.listen(PORT,()=>{
+  console.log(`Backend Tecnok rodando na porta ${PORT}`);
+});
 
-    res.status(status).json({ message });
-    throw err;
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
-})();
+// Importa e usa a rota de corridas com preço fixo
+import corridasRouter from './rotasCorridas.js';
+app.use('/api', corridasRouter);

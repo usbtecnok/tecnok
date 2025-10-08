@@ -1,0 +1,38 @@
+CREATE DATABASE IF NOT EXISTS usbtecnokcar;
+USE usbtecnokcar;
+
+CREATE TABLE IF NOT EXISTS Users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    plate VARCHAR(20),
+    type ENUM('passenger','driver') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS PanicAlerts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    userId INT NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS pedidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    passengerId INT NOT NULL,
+    destination VARCHAR(255) NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (passengerId) REFERENCES Users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS routes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    from_location VARCHAR(50) NOT NULL,
+    to_location VARCHAR(50) NOT NULL,
+    price DECIMAL(10,2) NOT NULL
+);
+
+INSERT INTO routes (from_location, to_location, price) VALUES
+('A','B',10),
+('B','C',15),
+('A','C',20);

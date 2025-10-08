@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel USB-TECNOK</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 0; padding: 0; }
+  header { background: #0a74da; color: white; padding: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 15px; }
+  header img { height: 50px; }
+  h1 { margin: 0; font-size: 24px; }
+  main { padding: 20px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { padding: 10px; text-align: center; border: 1px solid #ddd; }
+  th { background: #0a74da; color: white; }
+  .price-up { color: green; font-weight: bold; }
+  .price-down { color: red; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="/static/logo.png" alt="USB-TECNOK">
+  <h1>Painel de Rotas e Preços</h1>
+</header>
+
+<main>
+  <table id="routes-table">
+    <thead>
+      <tr>
+        <th>Origem</th>
+        <th>Destino</th>
+        <th>Preço</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rotas aparecerão aqui -->
+    </tbody>
+  </table>
+</main>
+
+<script>
+  const ws = new WebSocket('ws://localhost:5000');
+  const tableBody = document.querySelector('#routes-table tbody');
+  const lastPrices = {};
+
+  ws.onopen = () => console.log('✅ WebSocket conectado!');
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === 'update') {
+      tableBody.innerHTML = '';
+      data.routes.forEach(route => {
+        const tr = document.createElement('tr');
+        const key = route.from + '-' + route.to;
+        const priceDiff = lastPrices[key] - route.price;
+        lastPrices[key] = route.price;
+
+        const priceClass = priceDiff < 0 ? 'price-up' : (priceDiff > 0 ? 'price-down' : '');
+        tr.innerHTML = `
+          <td>${route.from}</td>
+          <td>${route.to}</td>
+          <td class="${priceClass}">${route.price}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+  };
+  ws.onerror = (err) => console.error('❌ Erro no WebSocket:', err);
+</script>
+
+</body>
+</html>

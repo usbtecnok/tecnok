@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa Rio de Janeiro - Tecnok</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  // Coordenadas centrais aproximadas: Região Oeste do Rio
+  const map = L.map('map').setView([-22.9136, -43.2222], 11); 
+
+  // Tiles do OpenStreetMap
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+    maxZoom: 19
+  }).addTo(map);
+
+  // Motoristas
+  const motoristas = [
+    { id: 1, nome: 'Motorista 1', lat: -22.9121, lon: -43.2300 },
+    { id: 2, nome: 'Motorista 2', lat: -22.9500, lon: -43.2100 },
+    { id: 3, nome: 'Motorista 3', lat: -22.8900, lon: -43.2600 }
+  ];
+
+  const markersMotoristas = motoristas.map(m => 
+    L.marker([m.lat, m.lon], {icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/61/61231.png', iconSize: [30, 30]})})
+      .bindPopup(m.nome)
+      .addTo(map)
+  );
+
+  // Passageiros
+  const passageiros = [
+    { id: 1, nome: 'Passageiro 1', lat: -22.9300, lon: -43.2000 },
+    { id: 2, nome: 'Passageiro 2', lat: -22.9100, lon: -43.2500 }
+  ];
+
+  const markersPassageiros = passageiros.map(p => 
+    L.marker([p.lat, p.lon], {icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/1077/1077042.png', iconSize: [25, 25]})})
+      .bindPopup(p.nome)
+      .addTo(map)
+  );
+
+  // Localização em tempo real do usuário
+  if (navigator.geolocation) {
+    let minhaPos = L.marker([-22.9136, -43.2222], {icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/64/64113.png', iconSize: [30, 30]})})
+      .bindPopup('Você está aqui')
+      .addTo(map);
+
+    navigator.geolocation.watchPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        minhaPos.setLatLng([lat, lon]);
+        map.setView([lat, lon], 13);
+      },
+      (err) => console.error('Erro ao obter localização: ', err),
+      { enableHighAccuracy: true }
+    );
+  } else {
+    alert('Geolocalização não suportada no seu navegador.');
+  }
+</script>
+
+</body>
+</html>

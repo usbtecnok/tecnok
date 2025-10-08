@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Motorista - USB-TECNOK</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<style>
+body { font-family: Arial; background:#f0f0f0; margin:0; padding:0; display:flex; flex-direction:column; align-items:center; }
+header { background:green; color:white; width:100%; padding:15px; text-align:center; font-size:20px; }
+.container { margin:20px; width:90%; max-width:800px; }
+#map { height:400px; border-radius:15px; margin-bottom:20px; }
+.ride { background:#fff; padding:10px; margin:10px 0; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); }
+.ride button { padding:8px 12px; border:none; border-radius:8px; cursor:pointer; margin-left:10px; }
+button.accept { background:green; color:white; }
+button.panic { background:red; color:white; }
+</style>
+</head>
+<body>
+<header>Painel Motorista USB-TECNOK</header>
+<div class="container">
+<div id="map"></div>
+<div id="ridesContainer"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+
+// Inicializa mapa
+const map = L.map('map').setView([-3.85, -32.42], 13); // Exemplo: Fernando de Noronha
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+let markers = [];
+
+// Função para adicionar marker no mapa
+function addMarker(lat, lng, label) {
+  const marker = L.marker([lat, lng]).addTo(map).bindPopup(label).openPopup();
+  markers.push(marker);
+}
+
+// Função limpar markers
+function clearMarkers() { markers.forEach(m => map.removeLayer(m)); markers=[]; }
+
+// Recebe corridas em tempo real
+socket.on('newRide', ride => {
+  const container = document.getElementById('ridesContainer');
+  const div = document.createElement('div');
+  div.className = 'ride';
+  div.innerHTML = `
+    Corrida de ${ride.from} para ${ride.to} - ${ride.price} créditos
+    <button class="accept" onclick="acceptRide('${ride.id}')">Aceitar</button>
+    <button class="panic" onclick="alertPanic('${ride.userId}')">Pânico</button>
+  `;
+  container.appendChild(div);
+
+  // Atualiza mapa com rota fictícia (exemplo)
+  clearMarkers();
+  addMarker(-3.85, -32.42, `Origem: ${ride.from}`);
+  addMarker(-3.83, -32.41, `Destino: ${ride.to}`);
+});
+
+function acceptRide(id) {
+  socket.emit('acceptRide', { rideId: id });
+  alert('✅ Corrida aceita!');
+}
+
+function alertPanic(userId) {
+  alert(`🚨 Pânico do usuário ${userId}!`);
+}
+
+// Receber alertas de pânico globais
+socket.on('panicAlert', data => {
+  alert(`🚨 PANICO do usuário ${data.userId}!`);
+});
+</script>
+</body>
+</html>

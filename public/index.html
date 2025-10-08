@@ -1,11 +1,132 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>USBTECNOK</title>
+  <meta charset="UTF-8">
+  <title>USB-TECNOK - Painel do Passageiro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 0; padding: 0; }
+    header { display: flex; align-items: center; background: #0b3d91; color: white; padding: 10px 20px; }
+    header img { height: 50px; margin-right: 15px; }
+    main { padding: 20px; }
+    .table-container, .chart-container { background: white; padding: 20px; margin-bottom: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background: #0b3d91; color: white; }
+    .price-up { color: green; font-weight: bold; }
+    .price-down { color: red; font-weight: bold; }
+
+    /* Botão de pânico moderno e responsivo */
+    .btn-panico {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #ff4e50, #f9d423);
+      color: white;
+      padding: 18px 22px;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 22px;
+      font-weight: bold;
+      box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+      z-index: 999;
+    }
+    .btn-panico:hover {
+      transform: scale(1.1);
+      box-shadow: 0 12px 20px rgba(0,0,0,0.4);
+    }
+    @media (max-width: 600px) {
+      .btn-panico { bottom: 15px; right: 15px; padding: 15px 18px; font-size: 18px; }
+    }
+  </style>
 </head>
 <body>
-    <h1>Vídeo USBTECNOK</h1>
-    <video src="/videos/tecnok_seguranca_praticidade.mp4" controls autoplay loop></video>
+  <header>
+    <img src="/logotecnok.png" alt="USB-TECNOK">
+    <h1>Painel do Passageiro</h1>
+  </header>
+  <main>
+    <div class="table-container">
+      <h2>Rotas e Preços</h2>
+      <table id="routesTable">
+        <thead>
+          <tr>
+            <th>De</th>
+            <th>Para</th>
+            <th>Preço</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="chart-container">
+      <h2>Histórico de Preços</h2>
+      <canvas id="priceChart" height="150"></canvas>
+    </div>
+  </main>
+
+  <button class="btn-panico" id="btnPanico">⚠️</button>
+
+  <script>
+    const routesTableBody = document.querySelector('#routesTable tbody');
+    const ctx = document.getElementById('priceChart').getContext('2d');
+
+    const priceChart = new Chart(ctx, {
+      type: 'line',
+      data: { labels: [], datasets: [{ label: 'Preço A → B', data: [], borderColor: '#0b3d91', backgroundColor: 'rgba(11,61,145,0.2)', tension: 0.4, fill: true }] },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: true } },
+        scales: { x: { title: { display: true, text: 'Timestamp' } }, y: { title: { display: true, text: 'Preço (R$)' } } }
+      }
+    });
+
+    const ws = new WebSocket('ws://localhost:5000');
+    ws.onopen = () => console.log('✅ Conexão WebSocket aberta');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.routes) {
+        routesTableBody.innerHTML = '';
+        data.routes.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${r.from}</td><td>${r.to}</td><td class="${r.priceChange==='up'?'price-up':r.priceChange==='down'?'price-down':''}">${r.price}</td>`;
+          routesTableBody.appendChild(tr);
+        });
+
+        const routeAB = data.routes.find(r => r.from==='A' && r.to==='B');
+        if (routeAB) {
+          const timestamp = new Date(data.timestamp).toLocaleTimeString();
+          priceChart.data.labels.push(timestamp);
+          priceChart.data.datasets[0].data.push(routeAB.price);
+          if (priceChart.data.labels.length>10) { priceChart.data.labels.shift(); priceChart.data.datasets[0].data.shift(); }
+          priceChart.update();
+        }
+      }
+    };
+    ws.onclose = () => console.log('❌ Conexão WebSocket fechada');
+
+    // Funcionalidade real do botão de pânico
+    document.getElementById('btnPanico').addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        alert('Geolocalização não suportada pelo seu navegador!');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition((position) => {
+        const msg = {
+          type: 'panic',
+          timestamp: new Date().toISOString(),
+          location: { lat: position.coords.latitude, lng: position.coords.longitude }
+        };
+        ws.send(JSON.stringify(msg));
+        alert('🚨 Botão de pânico acionado! Localização enviada à central.');
+      }, (err) => {
+        alert('Não foi possível obter a localização: ' + err.message);
+      });
+    });
+  </script>
 </body>
 </html>
