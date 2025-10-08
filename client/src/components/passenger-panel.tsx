@@ -1,0 +1,445 @@
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { MapPin, Circle, Users, Search, Clock, CheckCircle, Car, DollarSign, UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import type { RoutePrice } from "@shared/schema";
+import { useLocation } from "wouter";
+
+interface RideForm {
+  origin: string;
+  destination: string;
+  passengerCount: number;
+  passengerName: string;
+  passengerPhone: string;
+}
+
+// Helper to format price as Brazilian currency
+function formatBRL(price: string | number): string {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  return new Intl.NumberFormat('pt-BR', { 
+    style: 'currency', 
+    currency: 'BRL' 
+  }).format(numPrice);
+}
+
+export default function PassengerPanel() {
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  const [rideForm, setRideForm] = useState<RideForm>({
+    origin: "",
+    destination: "",
+    passengerCount: 1,
+    passengerName: "",
+    passengerPhone: ""
+  });
+
+  // Get current passenger phone from localStorage
+  const currentPassengerPhone = localStorage.getItem("passengerPhone") || "";
+
+  // Fetch rides for current passenger only (secure server-side filtering)
+  const { data: rides, isLoading: ridesLoading } = useQuery({
+    queryKey: ["/api/rides/by-phone", currentPassengerPhone],
+    queryFn: async () => {
+      if (!currentPassengerPhone) return [];
+      const response = await apiRequest("POST", "/api/rides/by-phone", { phone: currentPassengerPhone });
+      return response.json();
+    },
+    refetchInterval: 5000,
+    enabled: !!currentPassengerPhone,
+  });
+
+  const { data: routePrices } = useQuery<RoutePrice[]>({
+    queryKey: ["/api/route-prices"],
+  });
+
+  const createRideMutation = useMutation({
+    mutationFn: async (data: RideForm) => {
+      const response = await apiRequest("POST", "/api/rides", data);
+      return response.json();
+    },
+    onSuccess: (newRide) => {
+      // Save passenger phone to localStorage
+      localStorage.setItem("passengerPhone", rideForm.passengerPhone);
+      
+      toast({
+        title: "Corrida solicitada!",
+        description: "Buscando motorista disponível...",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/rides/by-phone"] });
+      setRideForm({
+        origin: "",
+        destination: "",
+        passengerCount: 1,
+        passengerName: "",
+        passengerPhone: ""
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Falha ao solicitar corrida. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rideForm.origin || !rideForm.destination || !rideForm.passengerName || !rideForm.passengerPhone) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha todos os campos para solicitar a corrida.",
+        variant: "destructive",
+      });
+      return;
+    }
+    createRideMutation.mutate(rideForm);
+  };
+
+  const currentRide = Array.isArray(rides) ? rides.find((ride: any) => ride.status !== 'completed' && ride.status !== 'cancelled') : undefined;
+  const completedRides = Array.isArray(rides) ? rides.filter((ride: any) => ride.status === 'completed' || ride.status === 'cancelled') : [];
+
+  const getRideSteps = (status: string) => {
+    const steps = [
+      { label: "Corrida solicitada", completed: true },
+      { label: "Buscando motorista", completed: status !== 'pending' },
+      { label: "Motorista a caminho", completed: status === 'in_progress' || status === 'completed' },
+      { label: "Em andamento", completed: status === 'completed' }
+    ];
+    return steps;
+  };
+
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case 'completed': return 'bg-green-500';
+      case 'cancelled': return 'bg-red-500';
+      case 'in_progress': return 'bg-blue-500';
+      case 'accepted': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch(status) {
+      case 'completed': return 'Concluída';
+      case 'cancelled': return 'Cancelada';
+      case 'in_progress': return 'Em andamento';
+      case 'accepted': return 'Aceita';
+      case 'pending': return 'Pendente';
+      default: return status;
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Ride Request Form */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <MapPin className="text-primary mr-3" />
+              Solicitar Corrida
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input
+                data-testid="input-passenger-name"
+                type="text"
+                value={rideForm.passengerName}
+                onChange={(e) => setRideForm(prev => ({ ...prev, passengerName: e.target.value }))}
+                placeholder="Seu nome completo"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Telefone</Label>
+              <Input
+                data-testid="input-passenger-phone"
+                type="tel"
+                value={rideForm.passengerPhone}
+                onChange={(e) => setRideForm(prev => ({ ...prev, passengerPhone: e.target.value }))}
+                placeholder="31 99999-9999"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Origem</Label>
+              <div className="relative">
+                <Circle className="text-primary absolute left-3 top-1/2 transform -translate-y-1/2 text-sm w-4 h-4" />
+                <Input
+                  data-testid="input-origin"
+                  type="text"
+                  value={rideForm.origin}
+                  onChange={(e) => setRideForm(prev => ({ ...prev, origin: e.target.value }))}
+                  className="pl-10"
+                  placeholder="Digite o local de partida"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Destino</Label>
+              <div className="relative">
+                <MapPin className="text-secondary absolute left-3 top-1/2 transform -translate-y-1/2 text-sm w-4 h-4" />
+                <Input
+                  data-testid="input-destination"
+                  type="text"
+                  value={rideForm.destination}
+                  onChange={(e) => setRideForm(prev => ({ ...prev, destination: e.target.value }))}
+                  className="pl-10"
+                  placeholder="Digite o destino"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Número de Passageiros</Label>
+              <Select 
+                value={rideForm.passengerCount.toString()} 
+                onValueChange={(value) => setRideForm(prev => ({ ...prev, passengerCount: parseInt(value) }))}
+              >
+                <SelectTrigger data-testid="select-passenger-count">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 passageiro</SelectItem>
+                  <SelectItem value="2">2 passageiros</SelectItem>
+                  <SelectItem value="3">3 passageiros</SelectItem>
+                  <SelectItem value="4">4 passageiros</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button 
+              type="submit" 
+              data-testid="button-request-ride"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-4"
+              disabled={createRideMutation.isPending}
+            >
+              <Search className="mr-2 w-4 h-4" />
+              {createRideMutation.isPending ? "Solicitando..." : "Solicitar Corrida"}
+            </Button>
+          </form>
+
+          <div className="mt-6 p-4 bg-muted rounded-lg">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Tempo estimado:</span>
+              <span data-testid="text-estimated-time" className="font-medium">5-10 min</span>
+            </div>
+            <div className="flex items-center justify-between text-sm mt-2">
+              <span className="text-muted-foreground">Preço estimado:</span>
+              <span data-testid="text-estimated-price" className="font-medium text-primary">R$ 15,00 - R$ 25,00</span>
+            </div>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-border">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-3">
+                Quer ganhar dinheiro dirigindo?
+              </p>
+              <Button
+                data-testid="button-become-driver"
+                variant="outline"
+                className="w-full border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground font-semibold"
+                onClick={() => setLocation("/cadastro-motorista")}
+              >
+                <UserPlus className="mr-2 w-4 h-4" />
+                Torne-se Motorista Parceiro
+              </Button>
+            </div>
+          </div>
+          </CardContent>
+        </Card>
+
+        {/* Ride Status Panel */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Clock className="text-secondary mr-3" />
+              Status da Corrida
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+          {currentRide ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                  <span data-testid="text-ride-status" className="font-medium">
+                    {currentRide.status === 'pending' && 'Buscando motorista...'}
+                    {currentRide.status === 'accepted' && 'Motorista encontrado!'}
+                    {currentRide.status === 'in_progress' && 'Em andamento'}
+                    {currentRide.status === 'completed' && 'Concluída'}
+                  </span>
+                </div>
+                <span data-testid="text-ride-id" className="text-sm text-muted-foreground">#{currentRide.id.slice(0, 8)}</span>
+              </div>
+
+              <div className="space-y-3">
+                {getRideSteps(currentRide.status).map((step, index) => (
+                  <div key={index} className="flex items-center space-x-4">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                      step.completed 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'bg-muted border-2 border-border opacity-50'
+                    }`}>
+                      {step.completed ? <CheckCircle className="w-4 h-4" /> : index + 1}
+                    </div>
+                    <div>
+                      <p className={`font-medium ${step.completed ? '' : 'text-muted-foreground'}`}>
+                        {step.label}
+                      </p>
+                      {step.completed && (
+                        <p className="text-sm text-muted-foreground">
+                          {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {currentRide.status === 'pending' && (
+                <Button
+                  data-testid="button-cancel-ride"
+                  variant="outline"
+                  className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground mt-6"
+                >
+                  Cancelar Corrida
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p data-testid="text-no-active-ride" className="text-muted-foreground">
+                Nenhuma corrida ativa no momento
+              </p>
+            </div>
+          )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Route Prices */}
+      {routePrices && routePrices.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <DollarSign className="text-primary mr-3" />
+              Tabela de Preços de Rotas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {routePrices.map((routePrice) => (
+                <div 
+                  key={routePrice.id} 
+                  className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+                  data-testid={`route-price-${routePrice.id}`}
+                >
+                  <span className="text-sm font-medium text-foreground">
+                    {routePrice.route}
+                  </span>
+                  <span className="text-sm font-bold text-primary">
+                    {formatBRL(routePrice.price)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Ride History */}
+      {completedRides.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Clock className="text-primary mr-3" />
+              Histórico de Corridas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {completedRides.map((ride: any) => (
+                <div 
+                  key={ride.id} 
+                  data-testid={`history-ride-${ride.id}`}
+                  className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor(ride.status)}`}></div>
+                        <span 
+                          data-testid={`history-status-${ride.id}`}
+                          className="text-xs font-medium"
+                        >
+                          {getStatusText(ride.status)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          #{ride.id.slice(0, 8)}
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2 text-sm">
+                          <Circle className="text-primary w-3 h-3 flex-shrink-0" />
+                          <span data-testid={`history-origin-${ride.id}`}>{ride.origin}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm">
+                          <MapPin className="text-secondary w-3 h-3 flex-shrink-0" />
+                          <span data-testid={`history-destination-${ride.id}`}>{ride.destination}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-primary">
+                        {ride.estimatedPrice || "R$ 18,00"}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {ride.completedAt 
+                          ? new Date(ride.completedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+                          : new Date(ride.requestedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center space-x-3">
+                      <span>
+                        <Users className="inline w-3 h-3 mr-1" />
+                        {ride.passengerCount}
+                      </span>
+                      {ride.driverId && (
+                        <span>
+                          <Car className="inline w-3 h-3 mr-1" />
+                          Motorista atribuído
+                        </span>
+                      )}
+                    </div>
+                    <span>
+                      {new Date(ride.requestedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}

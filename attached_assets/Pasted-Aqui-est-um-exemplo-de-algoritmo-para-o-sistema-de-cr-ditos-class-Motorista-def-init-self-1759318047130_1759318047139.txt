@@ -1,0 +1,67 @@
+Aqui está um exemplo de algoritmo para o sistema de créditos:
+class Motorista:
+    def __init__(self, id_motorista, nome):
+        self.id_motorista = id_motorista
+        self.nome = nome
+        self.creditos = 0
+
+    def comprar_creditos(self, quantidade):
+        self.creditos += quantidade
+
+    def realizar_corrida(self):
+        if self.creditos > 0:
+            self.creditos -= 1
+            return True
+        else:
+            return False
+
+class Plataforma:
+    def __init__(self):
+        self.motoristas = {}
+
+    def adicionar_motorista(self, id_motorista, nome):
+        self.motoristas[id_motorista] = Motorista(id_motorista, nome)
+
+    def comprar_creditos(self, id_motorista, quantidade):
+        if id_motorista in self.motoristas:
+            self.motoristas[id_motorista].comprar_creditos(quantidade)
+        else:
+            print("Motorista não encontrado")
+
+    def realizar_corrida(self, id_motorista):
+        if id_motorista in self.motoristas:
+            return self.motoristas[id_motorista].realizar_corrida()
+        else:
+            print("Motorista não encontrado")
+
+plataforma = Plataforma()
+
+while True:
+    print("1. Adicionar motorista")
+    print("2. Comprar créditos")
+    print("3. Realizar corrida")
+    print("4. Sair")
+
+    opcao = input("Escolha uma opção: ")
+
+    if opcao == "1":
+        id_motorista = input("Digite o ID do motorista: ")
+        nome = input("Digite o nome do motorista: ")
+        plataforma.adicionar_motorista(id_motorista, nome)
+    elif opcao == "2":
+        id_motorista = input("Digite o ID do motorista: ")
+        quantidade = int(input("Digite a quantidade de créditos: "))
+        plataforma.comprar_creditos(id_motorista, quantidade)
+    elif opcao == "3":
+        id_motorista = input("Digite o ID do motorista: ")
+        if plataforma.realizar_corrida(id_motorista):
+            print("Corrida realizada com sucesso")
+        else:
+            print("Motorista não tem créditos suficientes")
+    elif opcao == "4":
+        break
+    else:
+        print("Opção inválida")
+Esse algoritmo define duas classes: `Motorista` e `Plataforma`. A classe `Motorista` representa um motorista e tem métodos para comprar créditos e realizar corridas. A classe `Plataforma` representa a plataforma e tem métodos para adicionar motoristas, comprar créditos e realizar corridas.
+
+O algoritmo também inclui um menu para que o usuário possa interagir com a plataforma.

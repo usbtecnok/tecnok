@@ -1,0 +1,118 @@
+📌 Descrição Completa do Projeto tecnok
+1. Identidade da Plataforma
+
+Nome: tecnok
+
+Domínio principal: tecnok.com.br
+
+Subdomínio Render: tecnok.onrender.com
+
+Foco: serviço de transporte comunitário (estilo Uber), com motoristas e passageiros da região (Furnas, Agrícola e Mata Machado).
+
+Diferencial: viagens privadas, seguras, com motoristas da própria comunidade e preços acessíveis.
+
+2. Servidor e Backend
+
+Linguagens e Frameworks utilizados:
+
+Flask (Python) → versão inicial do servidor, usado para rodar formulários de corrida.
+
+Node.js + Express → versão atual do backend para maior escalabilidade.
+
+Estrutura de APIs criada:
+
+Cadastro de passageiros.
+
+Cadastro de motoristas.
+
+Solicitação de corrida pelo passageiro.
+
+Envio de corrida para o motorista mais próximo.
+
+Motorista pode aceitar ou recusar a corrida.
+
+Painel de status da corrida.
+
+3. Banco de Dados
+
+Banco de dados utilizado: MySQL.
+
+Estrutura definida:
+
+Tabela de clientes (passageiros).
+
+Tabela de motoristas.
+
+Tabela de corridas com status (pendente, aceita, concluída, cancelada).
+
+Integração direta do backend com MySQL.
+
+4. Frontend (Site e Aplicativo)
+
+Página inicial (tecnok.com.br):
+
+Formulário "Pedir Corrida" com logo da USBtecnok.
+
+Integração com backend para salvar a corrida no banco de dados.
+
+Botão de contato WhatsApp com número: +55 21 98066-9989 (texto: Fale com um agente Tecnok).
+
+Interface do Passageiro:
+
+Formulário simples para solicitar corrida.
+
+Mensagem de confirmação.
+
+Interface do Motorista:
+
+Painel mostrando corridas disponíveis.
+
+Opção de aceitar/recusar corrida.
+
+Simulação de motoristas disponíveis.
+
+Mapa interativo:
+
+Criado no link tecnok.onrender.com, permitindo visualizar localização.
+
+5. Deploy e Infraestrutura
+
+Plataforma de deploy: Render.com.
+
+Serviços configurados:
+
+Backend Node.js rodando na nuvem.
+
+Banco de dados configurado localmente e integrado ao backend.
+
+Ajustes feitos:
+
+Resolução de erros de módulos no Node.js.
+
+Configuração de rotas no Flask e no Express.
+
+Conexão entre frontend (site) e backend (API).
+
+Integração com domínio próprio.
+
+6. Material de Divulgação
+
+Vídeo promocional criado com a mensagem:
+
+“Agora ficou muito mais fácil se locomover em Furnas, Agrícola e Mata Machado. A tecnok chegou com um novo serviço de transporte, prático e acessível... (texto completo que você me passou).”
+
+Identidade visual: logo tecnok adicionada ao site e materiais.
+
+✅ Status Atual:
+
+Plataforma funcional com cadastro de corridas, motoristas e passageiros.
+
+Site tecnok.com.br online com formulário de corrida.
+
+Backend deployado no Render.
+
+Estrutura de banco de dados MySQL pronta.
+
+Mapa interativo disponível no Render.
+
+Vídeo de divulgação pronto com texto comercial.
