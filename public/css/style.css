@@ -1,0 +1,5 @@
+body { font-family: Arial, sans-serif; background:#f4f6f8; margin:0; padding:20px; text-align:center; }
+.top{ display:flex; align-items:center; gap:16px; justify-content:center; padding:20px; }
+.logo{ width:90px; height:auto; }
+.card{ display:inline-block; padding:18px 26px; margin:8px; background:#0078ff; color:#fff; text-decoration:none; border-radius:10px; }
+header h1, header h2{ margin:0; }

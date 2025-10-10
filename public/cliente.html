@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Cliente - Tecnok</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<header><img src="/assets/logo.png" class="logo" alt="Logo" /><h2>Área do Cliente</h2></header>
+<main>
+  <button onclick="cadastrarCliente()">Cadastrar Cliente</button>
+  <div id="resp"></div>
+</main>
+<script type="module">
+async function cadastrarCliente(){
+  const nome = prompt('Nome do cliente:');
+  const telefone = prompt('Telefone:');
+  const res = await fetch('/api/clientes', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({nome, telefone})
+  });
+  const j = await res.json();
+  document.getElementById('resp').innerText = JSON.stringify(j, null, 2);
+}
+</script>
+</body>
+</html>

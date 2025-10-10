@@ -1,9 +1,5 @@
-# Tecnok
+# TecnokCar - Projeto unificado
 
-Projeto completo Tecnok (frontend + backend) pronto para deploy no Render.
-
-## Como rodar localmente
-
-1. npm install
-2. node server/index.js
-3. Acessar http://localhost:3000
+Estrutura pronta para deploy no Render.
+- Backend expõe APIs em /api/*
+- Frontend estático servido em /

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Registrar Corrida - Tecnok</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<header><img src="/assets/logo.png" class="logo" alt="Logo" /><h2>Registrar Corrida</h2></header>
+<main>
+  <button onclick="registrar()">Registrar Corrida</button>
+  <div id="resp"></div>
+</main>
+<script type="module">
+async function registrar(){
+  const cliente_id = prompt('ID do cliente:');
+  const motorista_id = prompt('ID do motorista:');
+  const origem = prompt('Origem:');
+  const destino = prompt('Destino:');
+  const res = await fetch('/api/corridas', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({cliente_id, motorista_id, origem, destino})
+  });
+  const j = await res.json();
+  document.getElementById('resp').innerText = JSON.stringify(j, null, 2);
+}
+</script>
+</body>
+</html>

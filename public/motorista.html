@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Painel Motorista - Tecnok</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<header><img src="/assets/logo.png" class="logo" alt="Logo" /><h2>Painel do Motorista</h2></header>
+<main>
+  <button onclick="listarCorridas()">Ver Corridas</button>
+  <div id="lista"></div>
+</main>
+<script type="module">
+async function listarCorridas(){
+  const res = await fetch('/api/corridas');
+  const dados = await res.json();
+  const el = document.getElementById('lista');
+  el.innerHTML = '<pre>'+JSON.stringify(dados, null, 2)+'</pre>';
+}
+</script>
+</body>
+</html>
