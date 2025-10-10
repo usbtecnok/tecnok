@@ -1,42 +1,27 @@
-// server/index.js
-// Arquivo principal do backend Tecnok para deploy no Render
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
 
-// Carregando variáveis de ambiente
-require('dotenv').config();
+dotenv.config();
 
-const express = require('express');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 
-// Conexão com PostgreSQL
-const { Pool } = require('pg');
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
-
-// Middleware para JSON
+// Middlewares
+app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../frontend')));
 
-// Rotas de exemplo
+// Rotas básicas
 app.get('/', (req, res) => {
-  res.send('Servidor Tecnok rodando!');
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// Exemplo de rota usando PostgreSQL
-app.get('/usuarios', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM usuarios LIMIT 10');
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Erro ao buscar usuários');
-  }
-});
-
-// Start do servidor
 app.listen(PORT, () => {
-  console.log(`Servidor Tecnok rodando na porta ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
