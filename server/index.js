@@ -1,12 +1,34 @@
-import http from 'http';
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
 
+const app = express();
 const PORT = process.env.PORT || 3000;
 
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Tecnok está rodando!\n');
+// Compatibilidade com __dirname em módulos ES
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Middleware para JSON (se precisar)
+app.use(express.json());
+
+// Servir arquivos estáticos do frontend
+app.use(express.static(path.join(__dirname, "../frontend")));
+
+// Exemplo de rota de API
+app.get("/api/motoristas", (req, res) => {
+  res.json([
+    { id: 1, nome: "João" },
+    { id: 2, nome: "Maria" },
+    { id: 3, nome: "Carlos" }
+  ]);
 });
 
-server.listen(PORT, () => {
-  console.log(`Servidor Tecnok rodando na porta ${PORT}`);
+// Rota coringa para redirecionar qualquer caminho não tratado
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+});
+
+app.listen(PORT, () => {
+  console.log(`🚗 Servidor Tecnok rodando na porta ${PORT}`);
 });

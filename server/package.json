@@ -1,0 +1,20 @@
+{
+  "name": "tecnok-server",
+  "version": "1.0.0",
+  "description": "Backend integrado do projeto Tecnok (Node + Express)",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": ["tecnok", "usbtecnokcar", "express", "backend"],
+  "author": "Aparecido Goes",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
