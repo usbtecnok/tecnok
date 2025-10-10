@@ -1,14 +1,18 @@
-const socket = io();
+// URL do backend Flask no Render
+const API_URL = window.location.hostname.includes("localhost")
+  ? "http://localhost:3000" // quando rodar localmente
+  : "https://usbtecnokcar-backend.onrender.com"; // quando estiver online
 
-socket.on('panic', (data) => {
-    alert(`🚨 PANICO do ${data.tipo} acionado pelo usuário ${data.userId}!`);
-});
-
-function solicitarCorrida() {
-    alert('✅ Corrida solicitada!');
+// Exemplo: busca de motoristas
+async function carregarMotoristas() {
+  try {
+    const resposta = await fetch(`${API_URL}/api/motoristas`);
+    if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
+    const dados = await resposta.json();
+    console.log("Motoristas:", dados);
+  } catch (erro) {
+    console.error("Erro ao conectar ao backend:", erro);
+  }
 }
 
-function acaoPanico() {
-    const userId = prompt('Seu ID de usuário para alerta de pânico:');
-    socket.emit('panic', { userId, tipo: 'PANICO' });
-}
+window.addEventListener("load", carregarMotoristas);
