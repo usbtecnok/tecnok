@@ -1,18 +1,31 @@
-// URL do backend Flask no Render
-const API_URL = window.location.hostname.includes("localhost")
-  ? "http://localhost:3000" // quando rodar localmente
-  : "https://usbtecnokcar-backend.onrender.com"; // quando estiver online
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.querySelector("#form-corrida");
 
-// Exemplo: busca de motoristas
-async function carregarMotoristas() {
-  try {
-    const resposta = await fetch(`${API_URL}/api/motoristas`);
-    if (!resposta.ok) throw new Error(`Erro HTTP: ${resposta.status}`);
-    const dados = await resposta.json();
-    console.log("Motoristas:", dados);
-  } catch (erro) {
-    console.error("Erro ao conectar ao backend:", erro);
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const dados = {
+        origem: document.querySelector("#origem").value,
+        destino: document.querySelector("#destino").value,
+        telefone: document.querySelector("#telefone").value,
+      };
+
+      try {
+        const resposta = await fetch("https://usbtecnokcar-backend-1.onrender.com/api/ride", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dados),
+        });
+
+        if (!resposta.ok) throw new Error("Erro no servidor");
+
+        const resultado = await resposta.json();
+        alert("Corrida solicitada com sucesso!\n" + JSON.stringify(resultado));
+      } catch (erro) {
+        console.error("Erro:", erro);
+        alert("Falha ao enviar a corrida. Tente novamente.");
+      }
+    });
   }
-}
-
-window.addEventListener("load", carregarMotoristas);
+});

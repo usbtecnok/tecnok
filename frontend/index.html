@@ -1,12 +1,65 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tecnok</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>USBTECNOK - Segurança e Praticidade no Transporte</title>
+  <link rel="icon" href="logo.png">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      text-align: center;
+      padding: 20px;
+    }
+    header img {
+      width: 150px;
+      margin-bottom: 10px;
+    }
+    h1 {
+      color: #222;
+      margin-top: 10px;
+    }
+    video {
+      width: 90%;
+      max-width: 600px;
+      border-radius: 10px;
+      margin: 20px auto;
+      display: block;
+    }
+    nav a {
+      display: inline-block;
+      margin: 10px;
+      padding: 10px 20px;
+      background: #0078d7;
+      color: #fff;
+      border-radius: 5px;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+    nav a:hover {
+      background: #005fa3;
+    }
+  </style>
 </head>
 <body>
-    <h1>Bem-vindo à plataforma Tecnok!</h1>
-    <p>Frontend básico carregado.</p>
+  <header>
+    <img src="logo.png" alt="Logo USBTECNOK">
+    <h1>Bem-vindo à plataforma USBTECNOK</h1>
+  </header>
+
+  <video controls autoplay muted loop>
+    <source src="USBTECNOK_Segurança_e_Praticidade.mp4" type="video/mp4">
+    Seu navegador não suporta vídeo.
+  </video>
+
+  <p>Escolha o que deseja acessar:</p>
+  <nav>
+    <a href="/mapa">🗺️ Ver Mapa</a>
+    <a href="/driver">🚗 Painel Motorista</a>
+    <a href="/panic">⚠️ Botão de Pânico</a>
+    <a href="/termo">📄 Termo de Adesão</a>
+  </nav>
 </body>
 </html>
