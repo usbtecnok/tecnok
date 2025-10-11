@@ -9,17 +9,19 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Serve os arquivos do frontend
+// Servir arquivos estáticos do frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-// Página inicial
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
-});
+// Páginas principais
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../frontend/index.html")));
+app.get("/mapa", (req, res) => res.sendFile(path.join(__dirname, "../frontend/mapa.html")));
+app.get("/driver", (req, res) => res.sendFile(path.join(__dirname, "../frontend/driver.html")));
+app.get("/panic", (req, res) => res.sendFile(path.join(__dirname, "../frontend/panic-button-logo.html")));
+app.get("/termo", (req, res) => res.sendFile(path.join(__dirname, "../frontend/termo_adesao_motorista.html")));
 
-// Endpoint básico de teste
+// API de teste
 app.get("/api/status", (req, res) => {
-  res.json({ status: "ok", message: "Servidor Tecnok ativo" });
+  res.json({ status: "ok", message: "Servidor Tecnok ativo e integrando frontend completo" });
 });
 
 const server = http.createServer(app);
