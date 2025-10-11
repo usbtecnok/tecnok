@@ -1,20 +1,22 @@
 {
   "name": "tecnok-server",
   "version": "1.0.0",
-  "description": "Backend integrado do projeto Tecnok (Node + Express)",
+  "description": "Servidor backend da plataforma Tecnok com Express e PostgreSQL",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
-  "keywords": ["tecnok", "usbtecnokcar", "express", "backend"],
-  "author": "Aparecido Goes",
-  "license": "MIT",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
-  }
+    "nodemon": "^3.1.4"
+  },
+  "author": "Aparecido Goes - USBTECNOK",
+  "license": "MIT"
 }
