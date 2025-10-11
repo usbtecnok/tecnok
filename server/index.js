@@ -3,6 +3,19 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const app = express();
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Serve arquivos estáticos do frontend
+app.use(express.static(path.join(__dirname, "../frontend")));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+});
+
 const PORT = process.env.PORT || 3000;
 
 // Compatibilidade com __dirname em módulos ES

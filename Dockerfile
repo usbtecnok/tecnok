@@ -1,20 +1,20 @@
-# Imagem base do Node
+# Etapa 1: Base de Node
 FROM node:22
 
-# Diretório de trabalho dentro do container
+# Diretório de trabalho
 WORKDIR /app
 
-# Copia apenas os arquivos de dependências do backend primeiro
+# Copia os arquivos do servidor
 COPY server/package*.json ./server/
 WORKDIR /app/server
 RUN npm install
 
-# Volta para a raiz e copia o restante do projeto
+# Volta e copia tudo (inclui frontend e assets)
 WORKDIR /app
 COPY . .
 
-# Expõe a porta usada pelo Render
-EXPOSE 3000
+# Expõe a porta
+EXPOSE 10000
 
-# Comando para iniciar o servidor
+# Comando de inicialização
 CMD ["node", "server/index.js"]
