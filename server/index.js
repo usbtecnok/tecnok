@@ -1,47 +1,29 @@
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const app = express();
+import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Serve arquivos estáticos do frontend
+const app = express();
+const PORT = process.env.PORT || 10000;
+
+// Serve os arquivos do frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
 
+// Página inicial
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/index.html"));
 });
 
-const PORT = process.env.PORT || 3000;
-
-// Compatibilidade com __dirname em módulos ES
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Middleware para JSON (se precisar)
-app.use(express.json());
-
-// Servir arquivos estáticos do frontend
-app.use(express.static(path.join(__dirname, "../frontend")));
-
-// Exemplo de rota de API
-app.get("/api/motoristas", (req, res) => {
-  res.json([
-    { id: 1, nome: "João" },
-    { id: 2, nome: "Maria" },
-    { id: 3, nome: "Carlos" }
-  ]);
+// Endpoint básico de teste
+app.get("/api/status", (req, res) => {
+  res.json({ status: "ok", message: "Servidor Tecnok ativo" });
 });
 
-// Rota coringa para redirecionar qualquer caminho não tratado
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
-});
+const server = http.createServer(app);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚗 Servidor Tecnok rodando na porta ${PORT}`);
 });
